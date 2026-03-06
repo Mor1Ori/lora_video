@@ -1,0 +1,7 @@
+{
+  "scanned": 100,
+  "valid": 100,
+  "invalid": 0,
+  "train": 80,
+  "val": 20
+}
