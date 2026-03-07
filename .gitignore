@@ -1,2 +1,4 @@
 data/
 /report.doc
+artifacts/
+scripts/__pycache__/
