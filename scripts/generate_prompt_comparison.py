@@ -35,6 +35,11 @@ def parse_args() -> argparse.Namespace:
         default="runwayml/stable-diffusion-v1-5",
     )
     parser.add_argument("--lora-path", type=Path, required=True)
+    parser.add_argument(
+        "--weight-name",
+        type=str,
+        default="pytorch_lora_weights.safetensors",
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/compare_lora"))
     parser.add_argument("--cache-dir", type=Path, default=Path("artifacts/hf_cache"))
     parser.add_argument("--prompt-file", type=Path, default=None)
@@ -117,7 +122,7 @@ def main() -> None:
         )
         print(f"baseline saved: {out_path}")
 
-    pipe.load_lora_weights(args.lora_path)
+    pipe.load_lora_weights(args.lora_path, weight_name=args.weight_name)
     for idx, prompt in enumerate(prompts):
         prompt_seed = args.seed + idx
         gen = torch.Generator(device=device.type).manual_seed(prompt_seed)
