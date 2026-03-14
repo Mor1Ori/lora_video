@@ -149,3 +149,22 @@ export TRANSFORMERS_OFFLINE=1
 ## 9. 当前阶段建议
 
 先完成本地图像阶段消融与结论，再切到云平台做长步数训练和视频阶段实验。
+
+## 10. 视频阶段入口
+
+视频阶段的数据与评测设计文档：
+
+- `docs/video_stage_protocol.md`
+
+快速开始（示例）：
+
+```bash
+python scripts/preprocess_video.py --input-dir data/video_raw --output-dir data/video_processed --size 512 --val-ratio 0.2 --min-frames 16 --max-frames 32 --frame-stride 1 --caption-file clip.txt
+python scripts/generate_video_style.py --output-dir artifacts/video_gen_baseline --clip-id clip_0001 --prompt "a cozy riverside town at sunset, hand-drawn animation style, gentle camera movement" --num-frames 12 --steps 20 --guidance-scale 7.5 --strength 0.30 --seed 42 --fps 8
+python scripts/generate_video_style.py --output-dir artifacts/video_gen_lora_r8_s400 --clip-id clip_0001 --prompt "a cozy riverside town at sunset, hand-drawn animation style, gentle camera movement" --lora-path artifacts/lora_image_ghibli_r8_s400 --num-frames 12 --steps 20 --guidance-scale 7.5 --strength 0.30 --seed 42 --fps 8
+python scripts/eval_video_consistency.py --clips-dir artifacts/video_gen_baseline --output artifacts/video_eval/consistency_baseline_generated.json --min-frames 8
+python scripts/eval_video_consistency.py --clips-dir artifacts/video_gen_lora_r8_s400 --output artifacts/video_eval/consistency_lora_generated.json --min-frames 8
+python scripts/generate_video_style_batch.py --baseline-output-dir artifacts/video_gen_baseline_batch --lora-output-dir artifacts/video_gen_lora_r8_s400_batch --lora-path artifacts/lora_image_ghibli_r8_s400 --num-frames 12 --steps 20 --guidance-scale 7.5 --strength 0.30 --seed 42 --fps 8
+python scripts/eval_video_consistency.py --clips-dir artifacts/video_gen_baseline_batch --output artifacts/video_eval/consistency_baseline_batch.json --min-frames 8
+python scripts/eval_video_consistency.py --clips-dir artifacts/video_gen_lora_r8_s400_batch --output artifacts/video_eval/consistency_lora_batch.json --min-frames 8
+```
