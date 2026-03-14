@@ -1,13 +1,15 @@
 # lora_video
 
-基于 Stable Diffusion v1.5 的小样本图像 LoRA 风格验证项目。  
-当前目标是先完成本地可复现实验闭环，再迁移到云平台高性能显卡进行更长训练和后续视频阶段扩展。
+基于 Stable Diffusion v1.5 的小样本图像/视频风格化验证项目。  
+当前目标是先完成本地可复现实验闭环，再迁移到云平台高性能显卡进行更长训练和视频阶段扩展。
 
 ## 1. 项目功能
 
 - 数据预处理：扫描、清洗、裁剪缩放、训练/验证划分、导出元数据
 - 训练验证：图像 LoRA 训练（支持小样本和 rank 消融）
 - 结果评估：单 prompt 推理与 baseline/LoRA 对比图生成
+- 视频生成：单 clip 与多 prompt 批量生成（baseline vs LoRA）
+- 视频评测：无参考时序一致性指标（`mean_abs_diff` / `mean_edge_diff` / `luminance_std`）
 - 过程记录：实验协议与周报记录
 
 ## 2. 目录结构
@@ -19,7 +21,11 @@
 |  |- train_smoke_test.py
 |  |- train_lora_image.py
 |  |- infer_lora_image.py
-|  `- generate_prompt_comparison.py
+|  |- generate_prompt_comparison.py
+|  |- preprocess_video.py
+|  |- generate_video_style.py
+|  |- generate_video_style_batch.py
+|  `- eval_video_consistency.py
 |- data/
 |  |- raw/
 |  `- processed/
@@ -155,6 +161,9 @@ export TRANSFORMERS_OFFLINE=1
 视频阶段的数据与评测设计文档：
 
 - `docs/video_stage_protocol.md`
+- `reports/video_stage_smoke.md`
+- `reports/video_generation_smoke.md`
+- `reports/video_generation_batch_compare.md`
 
 快速开始（示例）：
 
@@ -168,3 +177,19 @@ python scripts/generate_video_style_batch.py --baseline-output-dir artifacts/vid
 python scripts/eval_video_consistency.py --clips-dir artifacts/video_gen_baseline_batch --output artifacts/video_eval/consistency_baseline_batch.json --min-frames 8
 python scripts/eval_video_consistency.py --clips-dir artifacts/video_gen_lora_r8_s400_batch --output artifacts/video_eval/consistency_lora_batch.json --min-frames 8
 ```
+
+## 11. 2026-03-15 最新进展
+
+已完成 5 组 prompt 的 baseline vs LoRA 批量视频对比（每组 12 帧）：
+
+- Baseline: `artifacts/video_eval/consistency_baseline_batch.json`
+- LoRA: `artifacts/video_eval/consistency_lora_batch.json`
+- 批量清单: `artifacts/video_batch_manifest.json`
+
+关键均值指标（LoRA - Baseline）：
+
+- `mean_abs_diff_mean`: `-0.00893032008951361`（更低，时序变化更平滑）
+- `mean_edge_diff_mean`: `-0.001658382503823802`（更低，结构稳定性更好）
+- `luminance_std_mean`: `+0.001963612665007025`（更高，亮度波动略增）
+
+当前结论：在这批小样本上，LoRA 对时序平滑和结构稳定有正向提升，但亮度闪烁仍需继续优化。
